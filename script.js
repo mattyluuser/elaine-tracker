@@ -1,4 +1,30 @@
-const STORAGE_KEY = "elaine-bothersome-log";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  limit,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBWAsgTuJDHrAk8NlftzSdGcaOlv303cVs",
+  authDomain: "elaine-s-bothersome-tracker.firebaseapp.com",
+  projectId: "elaine-s-bothersome-tracker",
+  storageBucket: "elaine-s-bothersome-tracker.firebasestorage.app",
+  messagingSenderId: "737817239811",
+  appId: "1:737817239811:web:c21c69c6e0a6fe67c84936",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const entriesCol = collection(db, "bothersomes");
+
 const LAST_NAME_KEY = "elaine-bothersome-last-name";
 const PST_TIME_ZONE = "America/Los_Angeles";
 
@@ -25,29 +51,8 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
-function loadEntries() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-    return parsed
-      .map((entry) =>
-        typeof entry === "string" ? { name: "Unknown", timestamp: entry } : entry
-      )
-      .filter((entry) => entry && !isNaN(new Date(entry.timestamp).getTime()));
-  } catch {
-    return [];
-  }
-}
-
-function saveEntries(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
 function render(entries) {
   countEl.textContent = entries.length;
-
   logListEl.innerHTML = "";
 
   if (entries.length === 0) {
@@ -90,23 +95,19 @@ function updateButtonState() {
   botherBtn.disabled = nameInput.value.trim().length === 0;
 }
 
-function logBothersome() {
+async function logBothersome() {
   const name = nameInput.value.trim();
   if (!name) return;
 
-  const entries = loadEntries();
-  entries.push({ name, timestamp: new Date().toISOString() });
-  saveEntries(entries);
-  render(entries);
-
+  await addDoc(entriesCol, { name, timestamp: new Date().toISOString() });
   localStorage.setItem(LAST_NAME_KEY, name);
 }
 
-function undoLast() {
-  const entries = loadEntries();
-  entries.pop();
-  saveEntries(entries);
-  render(entries);
+async function undoLast() {
+  const q = query(entriesCol, orderBy("timestamp", "desc"), limit(1));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+  await deleteDoc(doc(db, "bothersomes", snapshot.docs[0].id));
 }
 
 nameInput.addEventListener("input", updateButtonState);
@@ -115,4 +116,8 @@ undoBtn.addEventListener("click", undoLast);
 
 nameInput.value = localStorage.getItem(LAST_NAME_KEY) || "";
 updateButtonState();
-render(loadEntries());
+
+const liveQuery = query(entriesCol, orderBy("timestamp"));
+onSnapshot(liveQuery, (snapshot) => {
+  render(snapshot.docs.map((docSnap) => docSnap.data()));
+});
