@@ -15,7 +15,16 @@
       <div class="count-label">bothersomes</div>
     </div>
 
-    <button id="bother-btn" class="bother-btn" aria-label="Log a bothersome moment">
+    <label for="reporter-name" class="name-label">Your name</label>
+    <input
+      id="reporter-name"
+      class="name-input"
+      type="text"
+      placeholder="Enter your name to log a bothersome"
+      autocomplete="name"
+    />
+
+    <button id="bother-btn" class="bother-btn" aria-label="Log a bothersome moment" disabled>
       Elaine was bothersome
     </button>
 
