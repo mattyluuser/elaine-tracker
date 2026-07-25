@@ -28,7 +28,14 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
 function loadEntries() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    return parsed
+      .map((entry) =>
+        typeof entry === "string" ? { name: "Unknown", timestamp: entry } : entry
+      )
+      .filter((entry) => entry && !isNaN(new Date(entry.timestamp).getTime()));
   } catch {
     return [];
   }
