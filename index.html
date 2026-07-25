@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bothersome Tracker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <h1>Elaine Bothersome Tracker</h1>
+
+    <div class="count-wrap">
+      <div id="count" class="count">0</div>
+      <div class="count-label">bothersomes</div>
+    </div>
+
+    <button id="bother-btn" class="bother-btn" aria-label="Log a bothersome moment">
+      Elaine was bothersome
+    </button>
+
+    <button id="undo-btn" class="undo-btn">Undo last</button>
+
+    <section class="log">
+      <h2>Log</h2>
+      <ul id="log-list" class="log-list"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
