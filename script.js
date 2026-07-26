@@ -1,123 +1,104 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  deleteDoc,
-  doc,
-  limit,
-  getDocs,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const BREED_IMAGES_URL = "https://dog.ceo/api/breed/chow/images";
+const LIKED_KEY = "christy-chow-chow-gallery-liked";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBWAsgTuJDHrAk8NlftzSdGcaOlv303cVs",
-  authDomain: "elaine-s-bothersome-tracker.firebaseapp.com",
-  projectId: "elaine-s-bothersome-tracker",
-  storageBucket: "elaine-s-bothersome-tracker.firebasestorage.app",
-  messagingSenderId: "737817239811",
-  appId: "1:737817239811:web:c21c69c6e0a6fe67c84936",
-};
+const frameEl = document.getElementById("frame");
+const photoEl = document.getElementById("photo");
+const statusEl = document.getElementById("status");
+const likeBtn = document.getElementById("like-btn");
+const prevBtn = document.getElementById("prev-btn");
+const nextBtn = document.getElementById("next-btn");
+const counterEl = document.getElementById("counter");
+const likedCountEl = document.getElementById("liked-count");
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const entriesCol = collection(db, "bothersomes");
+let photos = [];
+let index = 0;
+let liked = new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || "[]"));
 
-const LAST_NAME_KEY = "elaine-bothersome-last-name";
-const PST_TIME_ZONE = "America/Los_Angeles";
-
-const countEl = document.getElementById("count");
-const logListEl = document.getElementById("log-list");
-const botherBtn = document.getElementById("bother-btn");
-const undoBtn = document.getElementById("undo-btn");
-const nameInput = document.getElementById("reporter-name");
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: PST_TIME_ZONE,
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const timeFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: PST_TIME_ZONE,
-  hour: "numeric",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: true,
-  timeZoneName: "short",
-});
-
-function render(entries) {
-  countEl.textContent = entries.length;
-  logListEl.innerHTML = "";
-
-  if (entries.length === 0) {
-    const empty = document.createElement("li");
-    empty.className = "log-empty";
-    empty.textContent = "No bothersomes logged yet.";
-    logListEl.appendChild(empty);
-    return;
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-
-  [...entries].reverse().forEach((entry) => {
-    const d = new Date(entry.timestamp);
-    const li = document.createElement("li");
-
-    const top = document.createElement("div");
-    top.className = "entry-top";
-
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "entry-name";
-    nameSpan.textContent = entry.name;
-
-    const timeSpan = document.createElement("span");
-    timeSpan.className = "entry-time";
-    timeSpan.textContent = timeFormatter.format(d);
-
-    top.appendChild(nameSpan);
-    top.appendChild(timeSpan);
-
-    const dateSpan = document.createElement("span");
-    dateSpan.className = "entry-date";
-    dateSpan.textContent = dateFormatter.format(d);
-
-    li.appendChild(top);
-    li.appendChild(dateSpan);
-    logListEl.appendChild(li);
-  });
+  return arr;
 }
 
-function updateButtonState() {
-  botherBtn.disabled = nameInput.value.trim().length === 0;
+function saveLiked() {
+  localStorage.setItem(LIKED_KEY, JSON.stringify([...liked]));
 }
 
-async function logBothersome() {
-  const name = nameInput.value.trim();
-  if (!name) return;
-
-  await addDoc(entriesCol, { name, timestamp: new Date().toISOString() });
-  localStorage.setItem(LAST_NAME_KEY, name);
+function updateLikedCount() {
+  likedCountEl.textContent = liked.size > 0
+    ? `You've liked ${liked.size} chow chow${liked.size === 1 ? "" : "s"}`
+    : "";
 }
 
-async function undoLast() {
-  const q = query(entriesCol, orderBy("timestamp", "desc"), limit(1));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return;
-  await deleteDoc(doc(db, "bothersomes", snapshot.docs[0].id));
+function render() {
+  if (photos.length === 0) return;
+
+  const url = photos[index];
+  photoEl.src = url;
+  photoEl.hidden = false;
+  statusEl.hidden = true;
+
+  const isLiked = liked.has(url);
+  likeBtn.classList.toggle("liked", isLiked);
+  likeBtn.setAttribute("aria-pressed", String(isLiked));
+
+  counterEl.textContent = `${index + 1} / ${photos.length}`;
+  prevBtn.disabled = photos.length <= 1;
+  nextBtn.disabled = photos.length <= 1;
+  likeBtn.disabled = false;
+
+  updateLikedCount();
 }
 
-nameInput.addEventListener("input", updateButtonState);
-botherBtn.addEventListener("click", logBothersome);
-undoBtn.addEventListener("click", undoLast);
+function showNext() {
+  if (photos.length === 0) return;
+  index = (index + 1) % photos.length;
+  render();
+}
 
-nameInput.value = localStorage.getItem(LAST_NAME_KEY) || "";
-updateButtonState();
+function showPrev() {
+  if (photos.length === 0) return;
+  index = (index - 1 + photos.length) % photos.length;
+  render();
+}
 
-const liveQuery = query(entriesCol, orderBy("timestamp"));
-onSnapshot(liveQuery, (snapshot) => {
-  render(snapshot.docs.map((docSnap) => docSnap.data()));
+function toggleLike() {
+  if (photos.length === 0) return;
+  const url = photos[index];
+  if (liked.has(url)) {
+    liked.delete(url);
+  } else {
+    liked.add(url);
+  }
+  saveLiked();
+  render();
+}
+
+async function loadPhotos() {
+  try {
+    const res = await fetch(BREED_IMAGES_URL);
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    const data = await res.json();
+    if (data.status !== "success" || !Array.isArray(data.message) || data.message.length === 0) {
+      throw new Error("No chow chow photos found");
+    }
+    photos = shuffle(data.message);
+    render();
+  } catch (err) {
+    statusEl.textContent = "Couldn't fetch chow chow photos. Please refresh to try again.";
+  }
+}
+
+prevBtn.addEventListener("click", showPrev);
+nextBtn.addEventListener("click", showNext);
+likeBtn.addEventListener("click", toggleLike);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") showPrev();
+  else if (e.key === "ArrowRight") showNext();
+  else if (e.key.toLowerCase() === "l") toggleLike();
 });
+
+loadPhotos();
