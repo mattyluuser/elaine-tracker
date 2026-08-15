@@ -43,6 +43,14 @@ h1 {
   margin-bottom: 2rem;
 }
 
+.hero-image {
+  display: block;
+  max-width: 220px;
+  width: 60%;
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
 .count-wrap {
   margin-bottom: 2rem;
 }
