@@ -51,6 +51,7 @@ const SNARKY_REMARKS = [
 ];
 
 const countEl = document.getElementById("count");
+const daysSinceEl = document.getElementById("days-since");
 const logListEl = document.getElementById("log-list");
 const botherBtn = document.getElementById("bother-btn");
 const nameInput = document.getElementById("reporter-name");
@@ -78,12 +79,38 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
+const pstDateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: PST_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function pstDayIndex(date) {
+  const [year, month, day] = pstDateKeyFormatter.format(date).split("-").map(Number);
+  return Date.UTC(year, month - 1, day) / 86400000;
+}
+
+let lastEntryTimestamp = null;
+
+function updateDaysSince() {
+  if (!lastEntryTimestamp) {
+    daysSinceEl.textContent = "—";
+    return;
+  }
+  daysSinceEl.textContent = pstDayIndex(new Date()) - pstDayIndex(new Date(lastEntryTimestamp));
+}
+
 function pickRemark() {
   return SNARKY_REMARKS[Math.floor(Math.random() * SNARKY_REMARKS.length)];
 }
 
 function render(entries) {
   countEl.textContent = entries.length;
+
+  lastEntryTimestamp = entries.length ? entries[entries.length - 1].timestamp : null;
+  updateDaysSince();
+
   logListEl.innerHTML = "";
 
   if (entries.length === 0) {
@@ -214,6 +241,7 @@ document.addEventListener("keydown", (event) => {
 
 nameInput.value = localStorage.getItem(LAST_NAME_KEY) || "";
 updateButtonState();
+setInterval(updateDaysSince, 60 * 60 * 1000);
 
 let isFirstSnapshot = true;
 
