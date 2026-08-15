@@ -87,6 +87,24 @@ h1 {
   outline-offset: 1px;
 }
 
+.description-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--fg);
+  margin-bottom: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.description-input:focus {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
+}
+
 .bother-btn {
   width: 100%;
   padding: 1.5rem;
@@ -110,21 +128,6 @@ h1 {
   cursor: not-allowed;
   opacity: 0.5;
   box-shadow: 0 6px 0 var(--red-dark), 0 8px 16px rgba(0, 0, 0, 0.15);
-}
-
-.undo-btn {
-  margin-top: 0.9rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.undo-btn:hover {
-  color: var(--fg);
 }
 
 .log {
@@ -175,9 +178,82 @@ h1 {
   color: var(--muted);
 }
 
+.log-list .entry-description {
+  margin: 0.3rem 0 0;
+  color: var(--fg);
+}
+
+.log-list .entry-remark {
+  margin: 0.3rem 0 0;
+  color: var(--red);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
 .log-empty {
   color: var(--muted);
   font-size: 0.9rem;
   text-align: center;
   padding: 1rem 0;
+}
+
+.remark-toast {
+  position: fixed;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 0.9rem 1.4rem;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  max-width: 80vw;
+  text-align: center;
+}
+
+.remark-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.flood-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.float-cutout {
+  position: absolute;
+  bottom: -25vh;
+  height: 150px;
+  width: auto;
+  opacity: 0;
+  animation: float-up linear forwards;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(var(--scale, 1));
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-135vh) scale(var(--scale, 1));
+    opacity: 0;
+  }
 }

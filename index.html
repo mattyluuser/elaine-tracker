@@ -24,17 +24,26 @@
       autocomplete="name"
     />
 
+    <label for="reporter-description" class="name-label">What happened?</label>
+    <textarea
+      id="reporter-description"
+      class="description-input"
+      placeholder="Describe what she did (optional)"
+      rows="2"
+    ></textarea>
+
     <button id="bother-btn" class="bother-btn" aria-label="Log a bothersome moment" disabled>
       Elaine was bothersome
     </button>
-
-    <button id="undo-btn" class="undo-btn">Undo last</button>
 
     <section class="log">
       <h2>Log</h2>
       <ul id="log-list" class="log-list"></ul>
     </section>
   </main>
+
+  <div id="remark-toast" class="remark-toast"></div>
+  <div id="flood-layer" class="flood-layer" aria-hidden="true"></div>
 
   <script type="module" src="script.js"></script>
 </body>

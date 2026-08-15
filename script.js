@@ -6,10 +6,6 @@ import {
   query,
   orderBy,
   onSnapshot,
-  deleteDoc,
-  doc,
-  limit,
-  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -27,12 +23,30 @@ const entriesCol = collection(db, "bothersomes");
 
 const LAST_NAME_KEY = "elaine-bothersome-last-name";
 const PST_TIME_ZONE = "America/Los_Angeles";
+const CUTOUT_SRC = "assets/elaine-cutout.png";
+const FLOOD_COUNT = 12;
+const TOAST_DURATION_MS = 3000;
+
+const SNARKY_REMARKS = [
+  "Given her history, it is not surprising.",
+  "There she goes again.",
+  "Shocking absolutely no one.",
+  "And the streak continues.",
+  "Another day, another entry for the file.",
+  "Consistency is her one virtue, apparently.",
+  "Add it to the tab.",
+  "Truly a masterclass in repetition.",
+  "The pattern holds strong.",
+  "Some things never change — case in point.",
+];
 
 const countEl = document.getElementById("count");
 const logListEl = document.getElementById("log-list");
 const botherBtn = document.getElementById("bother-btn");
-const undoBtn = document.getElementById("undo-btn");
 const nameInput = document.getElementById("reporter-name");
+const descriptionInput = document.getElementById("reporter-description");
+const remarkToastEl = document.getElementById("remark-toast");
+const floodLayerEl = document.getElementById("flood-layer");
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: PST_TIME_ZONE,
@@ -50,6 +64,10 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour12: true,
   timeZoneName: "short",
 });
+
+function pickRemark() {
+  return SNARKY_REMARKS[Math.floor(Math.random() * SNARKY_REMARKS.length)];
+}
 
 function render(entries) {
   countEl.textContent = entries.length;
@@ -87,6 +105,21 @@ function render(entries) {
 
     li.appendChild(top);
     li.appendChild(dateSpan);
+
+    if (entry.description) {
+      const descP = document.createElement("p");
+      descP.className = "entry-description";
+      descP.textContent = entry.description;
+      li.appendChild(descP);
+    }
+
+    if (entry.remark) {
+      const remarkP = document.createElement("p");
+      remarkP.className = "entry-remark";
+      remarkP.textContent = entry.remark;
+      li.appendChild(remarkP);
+    }
+
     logListEl.appendChild(li);
   });
 }
@@ -99,25 +132,76 @@ async function logBothersome() {
   const name = nameInput.value.trim();
   if (!name) return;
 
-  await addDoc(entriesCol, { name, timestamp: new Date().toISOString() });
+  const description = descriptionInput.value.trim();
+  const remark = pickRemark();
+
+  await addDoc(entriesCol, {
+    name,
+    description,
+    remark,
+    timestamp: new Date().toISOString(),
+  });
+
   localStorage.setItem(LAST_NAME_KEY, name);
+  descriptionInput.value = "";
 }
 
-async function undoLast() {
-  const q = query(entriesCol, orderBy("timestamp", "desc"), limit(1));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return;
-  await deleteDoc(doc(db, "bothersomes", snapshot.docs[0].id));
+let toastTimeoutId;
+
+function showRemarkToast(remark) {
+  if (!remark) return;
+  clearTimeout(toastTimeoutId);
+  remarkToastEl.textContent = remark;
+  remarkToastEl.classList.add("visible");
+  toastTimeoutId = setTimeout(() => {
+    remarkToastEl.classList.remove("visible");
+  }, TOAST_DURATION_MS);
+}
+
+function floodCutouts() {
+  for (let i = 0; i < FLOOD_COUNT; i++) {
+    const img = document.createElement("img");
+    img.src = CUTOUT_SRC;
+    img.alt = "";
+    img.className = "float-cutout";
+
+    const left = Math.random() * 90;
+    const duration = 3.5 + Math.random() * 2.5;
+    const delay = Math.random() * 0.8;
+    const scale = 0.6 + Math.random() * 0.7;
+
+    img.style.left = `${left}vw`;
+    img.style.animationDuration = `${duration}s`;
+    img.style.animationDelay = `${delay}s`;
+    img.style.setProperty("--scale", scale);
+    img.addEventListener("animationend", () => img.remove());
+
+    floodLayerEl.appendChild(img);
+  }
 }
 
 nameInput.addEventListener("input", updateButtonState);
 botherBtn.addEventListener("click", logBothersome);
-undoBtn.addEventListener("click", undoLast);
 
 nameInput.value = localStorage.getItem(LAST_NAME_KEY) || "";
 updateButtonState();
 
+let isFirstSnapshot = true;
+
 const liveQuery = query(entriesCol, orderBy("timestamp"));
 onSnapshot(liveQuery, (snapshot) => {
   render(snapshot.docs.map((docSnap) => docSnap.data()));
+
+  if (isFirstSnapshot) {
+    isFirstSnapshot = false;
+    return;
+  }
+
+  snapshot.docChanges().forEach((change) => {
+    if (change.type === "added") {
+      const entry = change.doc.data();
+      floodCutouts();
+      showRemarkToast(entry.remark);
+    }
+  });
 });
