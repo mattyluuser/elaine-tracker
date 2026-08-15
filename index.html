@@ -10,7 +10,15 @@
   <main class="page">
     <h1>Elaine Bothersome Tracker</h1>
 
-    <img src="assets/elaine-cutout.png" alt="Elaine getting the thermometer treatment" class="hero-image" />
+    <div class="hero-wrap">
+      <img src="assets/elaine-cutout.png" alt="Elaine getting the thermometer treatment" class="hero-image" />
+      <button id="zoom-btn" class="zoom-btn" aria-label="Zoom in on image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.5"></circle>
+          <line x1="15.5" y1="15.5" x2="21" y2="21"></line>
+        </svg>
+      </button>
+    </div>
 
     <div class="count-wrap">
       <div id="count" class="count">0</div>
@@ -46,6 +54,11 @@
 
   <div id="remark-toast" class="remark-toast"></div>
   <div id="flood-layer" class="flood-layer" aria-hidden="true"></div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button id="lightbox-close" class="lightbox-close" aria-label="Close zoomed image">&times;</button>
+    <img src="assets/elaine-cutout.png" alt="Elaine getting the thermometer treatment" class="lightbox-image" />
+  </div>
 
   <script type="module" src="script.js"></script>
 </body>

@@ -57,6 +57,9 @@ const nameInput = document.getElementById("reporter-name");
 const descriptionInput = document.getElementById("reporter-description");
 const remarkToastEl = document.getElementById("remark-toast");
 const floodLayerEl = document.getElementById("flood-layer");
+const zoomBtn = document.getElementById("zoom-btn");
+const lightboxEl = document.getElementById("lightbox");
+const lightboxCloseBtn = document.getElementById("lightbox-close");
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: PST_TIME_ZONE,
@@ -190,8 +193,24 @@ function floodCutouts() {
   }
 }
 
+function openLightbox() {
+  lightboxEl.hidden = false;
+}
+
+function closeLightbox() {
+  lightboxEl.hidden = true;
+}
+
 nameInput.addEventListener("input", updateButtonState);
 botherBtn.addEventListener("click", logBothersome);
+zoomBtn.addEventListener("click", openLightbox);
+lightboxCloseBtn.addEventListener("click", closeLightbox);
+lightboxEl.addEventListener("click", (event) => {
+  if (event.target === lightboxEl) closeLightbox();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !lightboxEl.hidden) closeLightbox();
+});
 
 nameInput.value = localStorage.getItem(LAST_NAME_KEY) || "";
 updateButtonState();
