@@ -95,7 +95,7 @@ let lastEntryTimestamp = null;
 
 function updateDaysSince() {
   if (!lastEntryTimestamp) {
-    daysSinceEl.textContent = "—";
+    daysSinceEl.textContent = "0";
     return;
   }
   daysSinceEl.textContent = pstDayIndex(new Date()) - pstDayIndex(new Date(lastEntryTimestamp));
