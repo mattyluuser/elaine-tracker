@@ -38,6 +38,16 @@ const SNARKY_REMARKS = [
   "Truly a masterclass in repetition.",
   "The pattern holds strong.",
   "Some things never change — case in point.",
+  "Right on schedule.",
+  "Bold of her to keep this up.",
+  "The data doesn't lie.",
+  "Iconic behavior, as always.",
+  "Somewhere, a trend line just got steeper.",
+  "Groundbreaking. Truly.",
+  "This one's going straight to the highlight reel.",
+  "Peak form today.",
+  "History repeats itself — loudly.",
+  "Noted. Filed. Unsurprised.",
 ];
 
 const countEl = document.getElementById("count");
