@@ -25,6 +25,8 @@ const LAST_NAME_KEY = "elaine-bothersome-last-name";
 const PST_TIME_ZONE = "America/Los_Angeles";
 const CUTOUT_SRC = "assets/elaine-cutout.png";
 const FLOOD_COUNT = 12;
+const MILESTONE_INTERVAL = 100;
+const MILESTONE_FLOOD_COUNT = 150;
 const TOAST_DURATION_MS = 3000;
 
 const SNARKY_REMARKS = [
@@ -198,8 +200,10 @@ function showRemarkToast(remark) {
   }, TOAST_DURATION_MS);
 }
 
-function floodCutouts() {
-  for (let i = 0; i < FLOOD_COUNT; i++) {
+function floodCutouts(count = FLOOD_COUNT) {
+  const maxDelay = Math.max(0.8, count / 40);
+
+  for (let i = 0; i < count; i++) {
     const img = document.createElement("img");
     img.src = CUTOUT_SRC;
     img.alt = "";
@@ -207,7 +211,7 @@ function floodCutouts() {
 
     const left = Math.random() * 90;
     const duration = 3.5 + Math.random() * 2.5;
-    const delay = Math.random() * 0.8;
+    const delay = Math.random() * maxDelay;
     const scale = 0.6 + Math.random() * 0.7;
 
     img.style.left = `${left}vw`;
@@ -257,7 +261,9 @@ onSnapshot(liveQuery, (snapshot) => {
   snapshot.docChanges().forEach((change) => {
     if (change.type === "added") {
       const entry = change.doc.data();
-      floodCutouts();
+      const position = snapshot.docs.findIndex((docSnap) => docSnap.id === change.doc.id) + 1;
+      const isMilestone = position > 0 && position % MILESTONE_INTERVAL === 0;
+      floodCutouts(isMilestone ? MILESTONE_FLOOD_COUNT : FLOOD_COUNT);
       showRemarkToast(entry.remark);
     }
   });
