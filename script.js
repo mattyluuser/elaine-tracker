@@ -29,6 +29,8 @@ const MILESTONE_INTERVAL = 100;
 const MILESTONE_FLOOD_COUNT = 150;
 const HALF_MILESTONE_INTERVAL = 50;
 const HALF_MILESTONE_FLOOD_COUNT = 75;
+const QUARTER_MILESTONE_OFFSET = 25;
+const QUARTER_MILESTONE_FLOOD_COUNT = 50;
 const TOAST_DURATION_MS = 3000;
 
 const SNARKY_REMARKS = [
@@ -266,10 +268,12 @@ onSnapshot(liveQuery, (snapshot) => {
       const position = snapshot.docs.findIndex((docSnap) => docSnap.id === change.doc.id) + 1;
       const isMilestone = position > 0 && position % MILESTONE_INTERVAL === 0;
       const isHalfMilestone = !isMilestone && position > 0 && position % HALF_MILESTONE_INTERVAL === 0;
+      const isQuarterMilestone = position > 0 && position % HALF_MILESTONE_INTERVAL === QUARTER_MILESTONE_OFFSET;
 
       let floodSize = FLOOD_COUNT;
       if (isMilestone) floodSize = MILESTONE_FLOOD_COUNT;
       else if (isHalfMilestone) floodSize = HALF_MILESTONE_FLOOD_COUNT;
+      else if (isQuarterMilestone) floodSize = QUARTER_MILESTONE_FLOOD_COUNT;
 
       floodCutouts(floodSize);
       showRemarkToast(entry.remark);
